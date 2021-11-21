@@ -1,11 +1,11 @@
 class Main {
- let int[] items;
- void printArray () {
-    let int i;
-    for (i = 0 ; i < 100 ; i++)
-        print(items[i]);
-     rof
- }
+    let int[] items;
+    void printArray () {
+        let int i;
+        for (i = 0 ; i < 100 ; i++)
+            print(items[i]);
+        rof
+  }
 
  int main() {
     let int i;
@@ -28,5 +28,7 @@ class Main {
         fi
      rof
        printArray();
- }
+
+       \
+    }
 }

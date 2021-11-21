@@ -19,11 +19,24 @@ public class Symbol {
 
     @Override
     public String toString() {
-        return "Symbol.Symbol.Symbol.Symbol{" +
+        return "Symbol{" +
                 "type=" + type +
                 ", line=" + (line+1) +
                 ", column=" + column +
                 ", value=" + value +
                 '}';
+    }
+
+    public SymbolType getType(){
+        return this.type;
+    }
+    public int getLine(){
+        return this.line;
+    }
+    public int getColumn(){
+        return this.column;
+    }
+    public Object getValue(){
+        return this.value;
     }
 }

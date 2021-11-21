@@ -24,7 +24,7 @@ LineTerminator = \r|\n|\r\n
 InputCharacter = [^\r\n]
 WhiteSpace     = {LineTerminator} | [ \t\f]
 
-/* comments */
+
 Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
 
 TraditionalComment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
@@ -50,20 +50,18 @@ KeyWord = "let" | "void" | "int" | "real" | "bool" | "string" | "static" | "clas
 Operators = "+" | "-" | "*" | "/" | "+=" | "-=" |"*=" | "/=" | "++" | "--" | "<" | "<=" | ">" | ">=" | "!=" |
 "==" | "=" | "%" | "&&" | "||" | "&" | "|" | "^" | "!" | "." | "," | ";" | "[" | "]" | "(" | ")" | "{" | "}"
 
-// SpecialCharacters = "\\n" | "\\t" | "\\r" | "\\\'" | "\\\"" | "\\\\";
 
 %state STRING
 %state SPECIAL_CHARACTERS
 
 %%
 
-/* keywords */
 
 <YYINITIAL> {
+  {LineTerminator}               {return symbol(SymbolType.LINE_TERMINATOR,"\n");}
 
   {KeyWord}                     { return symbol(SymbolType.KEYWORD,yytext()); }
 
-  /* identifiers */
   {Identifier}                { return symbol(SymbolType.IDENTIFIER,yytext()); }
 
   {DecimalInteger}            { return symbol(SymbolType.DECIMAL_INTEGER,yytext()); }
@@ -71,21 +69,13 @@ Operators = "+" | "-" | "*" | "/" | "+=" | "-=" |"*=" | "/=" | "++" | "--" | "<"
   {RealNumber}                { return symbol(SymbolType.REAL_NUMBER,yytext());}
   {ScientificNotation}        { return symbol(SymbolType.SCIENTIFIC,yytext());}
   {Operators}                 { return symbol(SymbolType.OPERATOR,yytext());}
-  // {SpecialCharacters}         { return symbol(SymbolType.SPECIAL_CHARACTER,yytext());}
-  /* literals */
 
   \"                          { string.setLength(0); yybegin(STRING); }
 
-  /* operators */
-  // "="                            { return symbol(SymbolType.EQ); }
-  // "=="                           { return symbol(SymbolType.EQEQ); }
-  // "+"                            { return symbol(SymbolType.PLUS); }
+  {Comment}                      { return symbol(SymbolType.COMMENT,yytext()); }
 
-  /* comments */
-  {Comment}                      { /* ignore */ }
-
-  /* whitespace */
-  {WhiteSpace}                   { /* ignore */ }
+  {WhiteSpace}                   { return symbol(SymbolType.WHITE_SPACE," "); }
+ 
 }
 
 <STRING> {
@@ -98,16 +88,13 @@ Operators = "+" | "-" | "*" | "/" | "+=" | "-=" |"*=" | "/=" | "++" | "--" | "<"
     string.append( yytext() );
   }
 
-  // \\t { return symbol(SymbolType.SPECIAL_CHARACTER,"\\t");}
   \\n|\\t|\\r|\\\"|\\\'|\\\\ { 
     yybegin(SPECIAL_CHARACTERS);
     s_char = new String(yytext());
     return symbol(SymbolType.STRING_LITERAL,string.toString()); 
   }
 
-  // \\r  { return symbol(SymbolType.SPECIAL_CHARACTER,"\\r"); }
-  // \\\" { return symbol(SymbolType.SPECIAL_CHARACTER,"\\\\"); }
-  // \\   { return symbol(SymbolType.SPECIAL_CHARACTER,"\\"); }
+ 
   
 }
 
@@ -125,4 +112,5 @@ Operators = "+" | "-" | "*" | "/" | "+=" | "-=" |"*=" | "/=" | "++" | "--" | "<"
 }
 
 /* error fallback */
-[^] { throw new Error("Illegal character <" + yytext()+"> at line : "+yyline + " & col :" + yycolumn ); }
+[^] {return symbol(SymbolType.UNDEFINED,yytext());}
+//[^] { throw new Error("Illegal character <" + yytext()+"> at line : "+yyline + " & col :" + yycolumn ); }
