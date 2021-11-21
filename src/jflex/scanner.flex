@@ -10,6 +10,7 @@ import Symbol.*;
 
 %{
   StringBuffer string = new StringBuffer();
+  String s_char = new String();
 
   private Symbol symbol(SymbolType type) {
     return new Symbol(type, yyline, yycolumn);
@@ -49,9 +50,10 @@ KeyWord = "let" | "void" | "int" | "real" | "bool" | "string" | "static" | "clas
 Operators = "+" | "-" | "*" | "/" | "+=" | "-=" |"*=" | "/=" | "++" | "--" | "<" | "<=" | ">" | ">=" | "!=" |
 "==" | "=" | "%" | "&&" | "||" | "&" | "|" | "^" | "!" | "." | "," | ";" | "[" | "]" | "(" | ")" | "{" | "}"
 
-SpecialCharacters = "\\n" | "\\t" | "\\r" | "\\\'" | "\\\"" | "\\\\";
+// SpecialCharacters = "\\n" | "\\t" | "\\r" | "\\\'" | "\\\"" | "\\\\";
 
 %state STRING
+%state SPECIAL_CHARACTERS
 
 %%
 
@@ -69,7 +71,7 @@ SpecialCharacters = "\\n" | "\\t" | "\\r" | "\\\'" | "\\\"" | "\\\\";
   {RealNumber}                { return symbol(SymbolType.REAL_NUMBER,yytext());}
   {ScientificNotation}        { return symbol(SymbolType.SCIENTIFIC,yytext());}
   {Operators}                 { return symbol(SymbolType.OPERATOR,yytext());}
-  {SpecialCharacters}         { return symbol(SymbolType.SPECIAL_CHARACTER,yytext());}
+  // {SpecialCharacters}         { return symbol(SymbolType.SPECIAL_CHARACTER,yytext());}
   /* literals */
 
   \"                          { string.setLength(0); yybegin(STRING); }
@@ -96,12 +98,30 @@ SpecialCharacters = "\\n" | "\\t" | "\\r" | "\\\'" | "\\\"" | "\\\\";
     string.append( yytext() );
   }
 
-  \\t { string.append('\t'); }
-  \\n { string.append('\n'); }
+  // \\t { return symbol(SymbolType.SPECIAL_CHARACTER,"\\t");}
+  \\n|\\t|\\r|\\\"|\\\'|\\\\ { 
+    yybegin(SPECIAL_CHARACTERS);
+    s_char = new String(yytext());
+    return symbol(SymbolType.STRING_LITERAL,string.toString()); 
+  }
 
-  \\r  { string.append('\r'); }
-  \\\" { string.append('\"'); }
-  \\   { string.append('\\'); }
+  // \\r  { return symbol(SymbolType.SPECIAL_CHARACTER,"\\r"); }
+  // \\\" { return symbol(SymbolType.SPECIAL_CHARACTER,"\\\\"); }
+  // \\   { return symbol(SymbolType.SPECIAL_CHARACTER,"\\"); }
+  
+}
+
+<SPECIAL_CHARACTERS>{
+  [^] {
+    string.setLength(0);
+    string.append(yytext());
+    if(string.toString().equals("\"")){
+      yybegin(YYINITIAL);
+    }else{
+      yybegin(STRING);
+    }
+    return symbol(SymbolType.SPECIAL_CHARACTER,s_char);
+  }
 }
 
 /* error fallback */
